@@ -324,22 +324,38 @@ export default function FormPage({ session, slot, myName, onSubmit, onBack }) {
         </div>
 
         {/* Standard categories */}
-        {CATEGORIES.map(cat => (
-          <div key={cat.id} id={`cat-${cat.id}`} className="category-section">
-            <div className="category-header">
-              <span className="category-icon">{cat.icon}</span>
-              <span className="category-name">{cat.label}</span>
+        {CATEGORIES.map(cat => {
+          const allAreYes = cat.items.length > 0 && cat.items.every(i => answers[i.id] === 'yes')
+          function handleAllYes() {
+            setAnswers(prev => {
+              const next = { ...prev }
+              cat.items.forEach(i => {
+                if (allAreYes) delete next[i.id]
+                else next[i.id] = 'yes'
+              })
+              return next
+            })
+          }
+          return (
+            <div key={cat.id} id={`cat-${cat.id}`} className="category-section">
+              <div className="category-header">
+                <span className="category-icon">{cat.icon}</span>
+                <span className="category-name">{cat.label}</span>
+                <button className="cat-all-yes-btn" onClick={handleAllYes}>
+                  {allAreYes ? '↺ Zurücksetzen' : '✓ Alle Ja'}
+                </button>
+              </div>
+              {cat.items.map(item => (
+                <ItemCard
+                  key={item.id}
+                  item={item}
+                  answer={answers[item.id]}
+                  onAnswer={handleAnswer}
+                />
+              ))}
             </div>
-            {cat.items.map(item => (
-              <ItemCard
-                key={item.id}
-                item={item}
-                answer={answers[item.id]}
-                onAnswer={handleAnswer}
-              />
-            ))}
-          </div>
-        ))}
+          )
+        })}
 
         {/* Custom items */}
         <div id="cat-custom">

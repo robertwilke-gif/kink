@@ -365,6 +365,27 @@ input {
   color: var(--gold);
 }
 
+.cat-all-yes-btn {
+  margin-left: auto;
+  background: none;
+  border: 1px solid #6b5c45;
+  color: #6b5c45;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.65rem;
+  border-radius: 2px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.cat-all-yes-btn:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
 .category-name {
   font-size: 1.1rem;
   font-weight: 300;
