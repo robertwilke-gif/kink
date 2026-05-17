@@ -152,6 +152,68 @@ function WishlistButton({ itemId, itemLabel, sessionId, slot, wishlist, onWishli
   )
 }
 
+// ─── Download Matches ─────────────────────────────────────────────────────────
+function DownloadMatches({ matchItems, myName, partnerName, myAnswers, partnerAnswers }) {
+  if (matchItems.length === 0) return null
+
+  function download() {
+    const catOrder = {}
+    CATEGORIES.forEach((cat, idx) => { catOrder[cat.id] = idx })
+
+    const grouped = {}
+    matchItems.forEach(item => {
+      const key = item.categoryLabel
+      if (!grouped[key]) grouped[key] = { items: [], order: catOrder[item.categoryId] ?? 999 }
+      grouped[key].items.push(item)
+    })
+
+    const sortedGroups = Object.entries(grouped).sort((a, b) => a[1].order - b[1].order)
+
+    const LABELS = { yes: 'Ja', curious: 'Neugierig', maybe: 'Vielleicht', no: 'Nein' }
+
+    const lines = [
+      'SHERIN & ROBERT — KINK LIST',
+      '════════════════════════════════',
+      '',
+      `${myName} & ${partnerName}`,
+      `${matchItems.length} gemeinsame Matches`,
+      `Stand: ${new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}`,
+      '',
+      '════════════════════════════════',
+      '',
+    ]
+
+    sortedGroups.forEach(([catLabel, { items }]) => {
+      lines.push(catLabel.toUpperCase())
+      lines.push('─'.repeat(catLabel.length))
+      items.forEach(item => {
+        const my = LABELS[myAnswers[item.id]] || '–'
+        const their = LABELS[partnerAnswers[item.id]] || '–'
+        lines.push(`  ${item.label}`)
+        lines.push(`    ${myName}: ${my}  ·  ${partnerName}: ${their}`)
+      })
+      lines.push('')
+    })
+
+    lines.push('════════════════════════════════')
+    lines.push('Erstellt mit der persönlichen Kink List')
+
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `kink-list-matches-${new Date().toISOString().slice(0, 10)}.txt`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  return (
+    <button className="btn btn-sm" onClick={download} style={{ marginBottom: '1.5rem' }}>
+      ↓ Liste herunterladen
+    </button>
+  )
+}
+
 // ─── Conversation Starter ─────────────────────────────────────────────────────
 function ConversationStarter({ matchItems }) {
   const [card, setCard] = useState(null)
@@ -487,10 +549,17 @@ export default function ResultsPage({ session, slot, myName, responses, onBack }
           ))}
         </div>
 
-        {/* Conversation Starter (matches only) */}
-        {activeTab === 'match' && matchItems.length >= 3 && (
-          <div style={{ marginBottom: '1.5rem' }}>
-            <ConversationStarter matchItems={matchItems} />
+        {/* Matches toolbar */}
+        {activeTab === 'match' && (
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
+            <DownloadMatches
+              matchItems={matchItems}
+              myName={myName}
+              partnerName={partnerName}
+              myAnswers={myAnswers}
+              partnerAnswers={partnerAnswers}
+            />
+            {matchItems.length >= 3 && <ConversationStarter matchItems={matchItems} />}
           </div>
         )}
 
