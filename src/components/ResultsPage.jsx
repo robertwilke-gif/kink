@@ -3,11 +3,17 @@ import { supabase } from '../supabase.js'
 import { CATEGORIES, isPositive, getAllItems } from '../data/items.js'
 
 const ANSWER_LABELS = { yes: 'Ja', curious: 'Neugierig', maybe: 'Vielleicht', no: 'Nein' }
+const ROLE_SHORT = { active: 'A', passive: 'P', both: 'B' }
 
 // ─── Badge ────────────────────────────────────────────────────────────────────
-function Badge({ answer }) {
+function Badge({ answer, role }) {
   if (!answer) return null
-  return <span className={`result-badge badge-${answer}`}>{ANSWER_LABELS[answer]}</span>
+  return (
+    <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+      <span className={`result-badge badge-${answer}`}>{ANSWER_LABELS[answer]}</span>
+      {role && <span className="role-letter">{ROLE_SHORT[role]}</span>}
+    </span>
+  )
 }
 
 // ─── Comment Section ──────────────────────────────────────────────────────────
@@ -267,15 +273,15 @@ function ConversationStarter({ matchItems }) {
 }
 
 // ─── Result Item ──────────────────────────────────────────────────────────────
-function ResultItem({ item, myAnswer, partnerAnswer, isMatch, sessionId, slot, myName, partnerName, comments, onCommentsChange, wishlist, onWishlistChange }) {
+function ResultItem({ item, myAnswer, partnerAnswer, myAnswers, partnerAnswers, isMatch, sessionId, slot, myName, partnerName, comments, onCommentsChange, wishlist, onWishlistChange }) {
   const [showInfo, setShowInfo] = useState(false)
   const cat = CATEGORIES.find(c => c.id === item.categoryId)
 
   return (
     <div className="result-item">
       <div className="result-badges">
-        <Badge answer={myAnswer} />
-        <Badge answer={partnerAnswer} />
+        <Badge answer={myAnswer} role={myAnswers[`r:${item.id}`]} />
+        <Badge answer={partnerAnswer} role={partnerAnswers[`r:${item.id}`]} />
       </div>
       <div className="result-content">
         <div className="result-cat">
@@ -362,6 +368,8 @@ function ResultGroup({ items, myAnswers, partnerAnswers, isMatchTab, sessionId, 
                 item={item}
                 myAnswer={myAnswers[item.id]}
                 partnerAnswer={partnerAnswers[item.id]}
+                myAnswers={myAnswers}
+                partnerAnswers={partnerAnswers}
                 isMatch={isMatchTab}
                 sessionId={sessionId}
                 slot={slot}

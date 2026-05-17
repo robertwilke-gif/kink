@@ -2,23 +2,46 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../supabase.js'
 import { CATEGORIES, ANSWER_OPTIONS, getAllItems } from '../data/items.js'
 
-function AnswerButtons({ itemId, value, onChange }) {
+const ROLE_OPTIONS = [
+  { value: 'active', label: 'Aktiv', short: 'A' },
+  { value: 'passive', label: 'Passiv', short: 'P' },
+  { value: 'both', label: 'Beides', short: 'B' },
+]
+
+const NEEDS_ROLE = new Set(['yes', 'curious', 'maybe'])
+
+function AnswerButtons({ itemId, value, role, onAnswer, onRole }) {
   return (
-    <div className="answer-grid">
-      {ANSWER_OPTIONS.map(opt => (
-        <button
-          key={opt.value}
-          className={`answer-btn ${value === opt.value ? `selected-${opt.value}` : ''}`}
-          onClick={() => onChange(itemId, opt.value)}
-        >
-          {opt.label}
-        </button>
-      ))}
+    <div>
+      <div className="answer-grid">
+        {ANSWER_OPTIONS.map(opt => (
+          <button
+            key={opt.value}
+            className={`answer-btn ${value === opt.value ? `selected-${opt.value}` : ''}`}
+            onClick={() => onAnswer(itemId, opt.value)}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+      {NEEDS_ROLE.has(value) && (
+        <div className="role-row">
+          {ROLE_OPTIONS.map(r => (
+            <button
+              key={r.value}
+              className={`role-btn ${role === r.value ? 'active' : ''}`}
+              onClick={() => onRole(itemId, role === r.value ? null : r.value)}
+            >
+              {r.label}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
 
-function ItemCard({ item, answer, onAnswer }) {
+function ItemCard({ item, answer, role, onAnswer, onRole }) {
   const [showInfo, setShowInfo] = useState(false)
 
   return (
@@ -41,12 +64,12 @@ function ItemCard({ item, answer, onAnswer }) {
       {showInfo && item.info && (
         <div className="item-info-text">{item.info}</div>
       )}
-      <AnswerButtons itemId={item.id} value={answer} onChange={onAnswer} />
+      <AnswerButtons itemId={item.id} value={answer} role={role} onAnswer={onAnswer} onRole={onRole} />
     </div>
   )
 }
 
-function CustomItemsSection({ sessionId, slot, customItems, setCustomItems, answers, onAnswer }) {
+function CustomItemsSection({ sessionId, slot, customItems, setCustomItems, answers, onAnswer, onRole }) {
   const [newLabel, setNewLabel] = useState('')
   const [newInfo, setNewInfo] = useState('')
   const [adding, setAdding] = useState(false)
@@ -107,7 +130,7 @@ function CustomItemsSection({ sessionId, slot, customItems, setCustomItems, answ
             </button>
           </div>
           {item.info && <div className="item-info-text">{item.info}</div>}
-          <AnswerButtons itemId={item.id} value={answers[item.id]} onChange={onAnswer} />
+          <AnswerButtons itemId={item.id} value={answers[item.id]} role={answers[`r:${item.id}`]} onAnswer={onAnswer} onRole={onRole} />
         </div>
       ))}
 
@@ -123,7 +146,7 @@ function CustomItemsSection({ sessionId, slot, customItems, setCustomItems, answ
                   <span className="item-label">{item.label}</span>
                 </div>
                 {item.info && <div className="item-info-text">{item.info}</div>}
-                <AnswerButtons itemId={item.id} value={answers[item.id]} onChange={onAnswer} />
+                <AnswerButtons itemId={item.id} value={answers[item.id]} role={answers[`r:${item.id}`]} onAnswer={onAnswer} onRole={onRole} />
               </div>
             ))}
           </div>
@@ -208,7 +231,21 @@ export default function FormPage({ session, slot, myName, onSubmit, onBack }) {
   }, [session.id])
 
   function handleAnswer(itemId, value) {
-    setAnswers(prev => ({ ...prev, [itemId]: value }))
+    setAnswers(prev => {
+      const next = { ...prev, [itemId]: value }
+      // clear role when switching to Nein
+      if (value === 'no') delete next[`r:${itemId}`]
+      return next
+    })
+  }
+
+  function handleRole(itemId, role) {
+    setAnswers(prev => {
+      const next = { ...prev }
+      if (role === null) delete next[`r:${itemId}`]
+      else next[`r:${itemId}`] = role
+      return next
+    })
   }
 
   const allItems = getAllItems(customItems)
@@ -350,7 +387,9 @@ export default function FormPage({ session, slot, myName, onSubmit, onBack }) {
                   key={item.id}
                   item={item}
                   answer={answers[item.id]}
+                  role={answers[`r:${item.id}`]}
                   onAnswer={handleAnswer}
+                  onRole={handleRole}
                 />
               ))}
             </div>
@@ -366,6 +405,7 @@ export default function FormPage({ session, slot, myName, onSubmit, onBack }) {
             setCustomItems={setCustomItems}
             answers={answers}
             onAnswer={handleAnswer}
+            onRole={handleRole}
           />
         </div>
 

@@ -851,6 +851,48 @@ input {
   color: var(--gold);
 }
 
+/* ─── Role selection (form) ─────────────────────────────────────────────────── */
+.role-row {
+  display: flex;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+}
+
+.role-btn {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.role-btn:hover {
+  border-color: var(--border-gold);
+  color: var(--text);
+}
+
+.role-btn.active {
+  border-color: var(--gold-dim);
+  color: var(--gold);
+  background: rgba(201, 169, 110, 0.08);
+}
+
+/* ─── Role letter (results) ─────────────────────────────────────────────────── */
+.role-letter {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  letter-spacing: 0.05em;
+  line-height: 1;
+  padding-top: 0.1rem;
+}
+
 /* ─── Comments ─────────────────────────────────────────────────────────────── */
 .comment-section {
   margin-top: 0.35rem;
