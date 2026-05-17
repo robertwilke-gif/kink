@@ -219,39 +219,24 @@ function ConversationStarter({ matchItems }) {
   const [card, setCard] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY
 
-  if (!apiKey || matchItems.length < 3) return null
+  if (matchItems.length < 3) return null
 
-  async function generate(item) {
+  async function generate() {
     setLoading(true)
     setError('')
-    const picked = item || matchItems[Math.floor(Math.random() * matchItems.length)]
+    const picked = matchItems[Math.floor(Math.random() * matchItems.length)]
 
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('/.netlify/functions/conversation-starter', {
         method: 'POST',
-        headers: {
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-allow-browser': 'true',
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'claude-haiku-4-5-20251001',
-          max_tokens: 150,
-          messages: [{
-            role: 'user',
-            content: `Du bist ein diskreter Begleiter für Paare die offen miteinander reden möchten. Das Paar hat das Thema "${picked.label}" als gemeinsames Interesse markiert.
-
-Formuliere genau eine offene Gesprächsfrage (keine Ja/Nein-Frage) die das Paar einlädt, ehrlicher und tiefer über dieses Thema zu sprechen — konkret, neugierig, ohne zu werten. Keine Einleitung, keine Erklärung, nur die Frage. Auf Deutsch. Maximal 2 Sätze.`,
-          }],
-        }),
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ label: picked.label }),
       })
 
-      if (!res.ok) throw new Error(`API Fehler ${res.status}`)
+      if (!res.ok) throw new Error(`Fehler ${res.status}`)
       const data = await res.json()
-      setCard({ item: picked, question: data.content[0].text.trim() })
+      setCard({ item: picked, question: data.question })
     } catch (e) {
       setError('Konnte keine Frage generieren. Bitte versuche es erneut.')
     }
@@ -261,15 +246,11 @@ Formuliere genau eine offene Gesprächsfrage (keine Ja/Nein-Frage) die das Paar 
   return (
     <div className="conv-starter">
       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: card ? '1rem' : 0 }}>
-        <button className="btn btn-sm" onClick={() => generate(null)} disabled={loading}>
-          {loading
-            ? <span className="conv-spinner">◈</span>
-            : '◈ Gesprächsstarter'}
+        <button className="btn btn-sm" onClick={generate} disabled={loading}>
+          {loading ? <span className="conv-spinner">◈</span> : '◈ Gesprächsstarter'}
         </button>
         {card && !loading && (
-          <button className="btn btn-ghost btn-sm" onClick={() => generate(null)}>
-            Andere Frage
-          </button>
+          <button className="btn btn-ghost btn-sm" onClick={generate}>Andere Frage</button>
         )}
       </div>
 
