@@ -1,12 +1,85 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../supabase.js'
+import { ANSWER_OPTIONS } from '../data/items.js'
+
+function AnswerButtons({ itemId, value, onChange }) {
+  return (
+    <div className="answer-grid">
+      {ANSWER_OPTIONS.map(opt => (
+        <button
+          key={opt.value}
+          className={`answer-btn ${value === opt.value ? `selected-${opt.value}` : ''}`}
+          onClick={() => onChange(itemId, opt.value)}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  )
+}
 
 export default function WaitingPage({ session, slot, myName, onDone, onBack }) {
   const [partnerName, setPartnerName] = useState(null)
-  const [secondsAgo, setSecondsAgo] = useState(0)
+  const [customItems, setCustomItems] = useState([])
+  const [pendingAnswers, setPendingAnswers] = useState({})
+  const [saving, setSaving] = useState(false)
+
+  const partnerItems = customItems.filter(i => i.created_by_slot !== slot)
+  const unanswered = partnerItems.filter(i => !(i.id in pendingAnswers))
+
+  const finalize = useCallback(async (allResponses) => {
+    // Before navigating to results, persist any pending answers for partner's custom items
+    if (Object.keys(pendingAnswers).length > 0) {
+      const { data: myResp } = await supabase
+        .from('responses')
+        .select('answers')
+        .eq('session_id', session.id)
+        .eq('slot', slot)
+        .single()
+
+      if (myResp) {
+        const merged = { ...myResp.answers, ...pendingAnswers }
+        await supabase
+          .from('responses')
+          .update({ answers: merged })
+          .eq('session_id', session.id)
+          .eq('slot', slot)
+
+        // Reflect updated answers in the response list passed to results
+        const updated = allResponses.map(r =>
+          r.slot === slot ? { ...r, answers: merged } : r
+        )
+        onDone(updated)
+        return
+      }
+    }
+    onDone(allResponses)
+  }, [pendingAnswers, session.id, slot, onDone])
 
   useEffect(() => {
     let pollInterval
+
+    async function init() {
+      // Load user's existing answers to track which partner items are already answered
+      const { data: myResp } = await supabase
+        .from('responses')
+        .select('answers')
+        .eq('session_id', session.id)
+        .eq('slot', slot)
+        .single()
+
+      if (myResp?.answers) {
+        setPendingAnswers(myResp.answers)
+      }
+
+      // Load custom items
+      const { data: items } = await supabase
+        .from('custom_items')
+        .select('*')
+        .eq('session_id', session.id)
+        .order('created_at')
+      setCustomItems(items || [])
+    }
 
     async function checkResponses() {
       const { data } = await supabase
@@ -17,7 +90,7 @@ export default function WaitingPage({ session, slot, myName, onDone, onBack }) {
       if (!data) return
 
       if (data.length >= 2) {
-        onDone(data)
+        finalize(data)
         return
       }
 
@@ -25,6 +98,7 @@ export default function WaitingPage({ session, slot, myName, onDone, onBack }) {
       if (partner) setPartnerName(partner.name)
     }
 
+    init()
     checkResponses()
 
     const channel = supabase
@@ -41,21 +115,56 @@ export default function WaitingPage({ session, slot, myName, onDone, onBack }) {
           .eq('session_id', session.id)
 
         if (data && data.length >= 2) {
-          onDone(data)
+          finalize(data)
         }
+      })
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'custom_items',
+        filter: `session_id=eq.${session.id}`,
+      }, payload => {
+        setCustomItems(prev => {
+          if (prev.find(i => i.id === payload.new.id)) return prev
+          return [...prev, payload.new]
+        })
       })
       .subscribe()
 
     pollInterval = setInterval(checkResponses, 10000)
 
-    const ticker = setInterval(() => setSecondsAgo(s => s + 1), 1000)
-
     return () => {
       supabase.removeChannel(channel)
       clearInterval(pollInterval)
-      clearInterval(ticker)
     }
-  }, [session.id, slot, onDone])
+  }, [session.id, slot, finalize])
+
+  function handleAnswer(itemId, value) {
+    setPendingAnswers(prev => ({ ...prev, [itemId]: value }))
+  }
+
+  async function saveAndWait() {
+    if (Object.keys(pendingAnswers).length === 0) return
+    setSaving(true)
+
+    const { data: myResp } = await supabase
+      .from('responses')
+      .select('answers')
+      .eq('session_id', session.id)
+      .eq('slot', slot)
+      .single()
+
+    if (myResp) {
+      const merged = { ...myResp.answers, ...pendingAnswers }
+      await supabase
+        .from('responses')
+        .update({ answers: merged })
+        .eq('session_id', session.id)
+        .eq('slot', slot)
+    }
+
+    setSaving(false)
+  }
 
   function shareViaWhatsApp() {
     const text = `Hier ist unser Code für die Kink List: *${session.code}* — öffne die App und gib den Code ein.`
@@ -90,6 +199,43 @@ export default function WaitingPage({ session, slot, myName, onDone, onBack }) {
             Diese Seite aktualisiert sich automatisch.
           </p>
         </div>
+
+        {/* Partner's custom items — voteable while waiting */}
+        {partnerItems.length > 0 && (
+          <div className="panel" style={{ borderColor: 'var(--border-gold)' }}>
+            <div className="panel-title">Vorschläge deines Partners</div>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', marginBottom: '1rem', lineHeight: 1.6 }}>
+              Dein Partner hat Items vorgeschlagen. Bewerte sie, damit sie in die Auswertung einfließen.
+            </p>
+
+            {partnerItems.map(item => (
+              <div key={item.id} className="item-card">
+                <div className="item-top">
+                  <span className="item-label">{item.label}</span>
+                </div>
+                {item.info && (
+                  <div className="item-info-text">{item.info}</div>
+                )}
+                <AnswerButtons
+                  itemId={item.id}
+                  value={pendingAnswers[item.id]}
+                  onChange={handleAnswer}
+                />
+              </div>
+            ))}
+
+            {unanswered.length === 0 && (
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={saveAndWait}
+                disabled={saving}
+                style={{ marginTop: '0.75rem' }}
+              >
+                {saving ? 'Wird gespeichert…' : 'Bewertungen speichern'}
+              </button>
+            )}
+          </div>
+        )}
 
         <div className="panel">
           <div className="panel-title">Session-Code</div>

@@ -148,11 +148,7 @@ export const CATEGORIES = [
     label: 'Gruppen & Dritte',
     icon: '◐',
     items: [
-      { id: 'gr-1', label: 'Threesome MFF', info: 'Sex zu dritt – ein Mann, zwei Frauen.' },
-      { id: 'gr-2', label: 'Threesome MMF', info: 'Sex zu dritt – zwei Männer, eine Frau.' },
-      { id: 'gr-3', label: 'Gangbang (empfangend)', info: 'Von mehreren Personen gleichzeitig oder nacheinander empfangen werden.' },
-      { id: 'gr-4', label: 'Gangbang (gebend)', info: 'Als eine Person zusammen mit anderen einer weiteren Person dienen.' },
-      { id: 'gr-5', label: 'Cuckolding / Cuckqueaning', info: 'Den Partner beim Sex mit einer anderen Person zusehen – Demut, Eifersucht, Erregung.' },
+      { id: 'gr-1', label: 'Threesome', info: 'Sex zu dritt mit einer weiteren Person.' },
       { id: 'gr-6', label: 'Swingen (Partnertausch)', info: 'Partnertausch mit einem anderen einvernehmlichen Paar.' },
       { id: 'gr-7', label: 'Open Relationship Szenarien', info: 'Offene Beziehungsszenarien im gegenseitigen Einverständnis – Freiheit mit Rahmen.' },
     ],
