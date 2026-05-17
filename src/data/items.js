@@ -1,5 +1,26 @@
 export const CATEGORIES = [
   {
+    id: 'pv',
+    label: 'Praktiken & Verkehr',
+    icon: '◍',
+    items: [
+      { id: 'pv-1', label: 'Vaginalsex', info: 'Klassischer Geschlechtsverkehr.' },
+      { id: 'pv-2', label: 'Oralsex geben', info: 'Den Partner oral befriedigen.' },
+      { id: 'pv-3', label: 'Oralsex empfangen', info: 'Oral befriedigt werden.' },
+      { id: 'pv-4', label: '69', info: 'Gegenseitiger Oralsex gleichzeitig.' },
+      { id: 'pv-5', label: 'Analsex geben', info: 'Analen Verkehr als gebende Person.' },
+      { id: 'pv-6', label: 'Analsex empfangen', info: 'Analen Verkehr als empfangende Person.' },
+      { id: 'pv-7', label: 'Fingern / Fingerverkehr', info: 'Manuelle Stimulation mit den Fingern, vaginal oder anal.' },
+      { id: 'pv-8', label: 'Handjob / manuelle Stimulation', info: 'Den Partner mit der Hand stimulieren oder stimuliert werden.' },
+      { id: 'pv-9', label: 'Fisting (vaginal)', info: 'Vaginale Penetration mit der ganzen Hand. Erfordert viel Vertrauen und Vorbereitung.' },
+      { id: 'pv-10', label: 'Fisting (anal)', info: 'Anale Penetration mit der ganzen Hand. Erfordert viel Erfahrung und Vorbereitung.' },
+      { id: 'pv-11', label: 'Titjob', info: 'Penetration zwischen den Brüsten.' },
+      { id: 'pv-12', label: 'Intercrural (zwischen den Schenkeln)', info: 'Reibung zwischen den Oberschenkeln des Partners ohne Penetration.' },
+      { id: 'pv-13', label: 'Dry Humping / Frottage', info: 'Gegenseitige Reibung mit oder ohne Kleidung ohne Penetration.' },
+      { id: 'pv-14', label: 'Tribbing / Scherenschnitt', info: 'Gegenseitige genitale Reibung zwischen zwei Personen ohne Penetration.' },
+    ],
+  },
+  {
     id: 'kb',
     label: 'Körper & Berührung',
     icon: '✦',
