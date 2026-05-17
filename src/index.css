@@ -576,6 +576,21 @@ input {
   font-size: 1rem;
   color: var(--text);
   font-weight: 400;
+  flex: 1;
+}
+
+.result-label-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.result-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  margin-top: 0.05rem;
 }
 
 /* Category group in results */
@@ -815,7 +830,309 @@ input {
   color: var(--gold);
 }
 
-/* Responsive */
+/* ─── Comments ─────────────────────────────────────────────────────────────── */
+.comment-section {
+  margin-top: 0.35rem;
+}
+
+.comment-toggle {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 0.1rem 0.2rem;
+  font-family: inherit;
+  transition: color 0.15s;
+  line-height: 1;
+}
+
+.comment-toggle:hover,
+.comment-toggle.has-comment {
+  color: var(--gold);
+}
+
+.comment-body {
+  margin-top: 0.5rem;
+  border-left: 2px solid var(--border-gold);
+  padding-left: 0.75rem;
+}
+
+.comment-entry {
+  margin-bottom: 0.5rem;
+}
+
+.comment-author {
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  display: block;
+  margin-bottom: 0.15rem;
+}
+
+.comment-text {
+  font-size: 0.88rem;
+  font-style: italic;
+  color: var(--gold);
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+.comment-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.comment-action-btn {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  text-transform: uppercase;
+  transition: color 0.15s;
+}
+
+.comment-action-btn:hover {
+  color: var(--gold-dim);
+}
+
+.comment-form {
+  margin-top: 0.35rem;
+}
+
+.comment-textarea {
+  width: 100%;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  color: var(--cream);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.88rem;
+  font-style: italic;
+  font-weight: 300;
+  font-family: inherit;
+  outline: none;
+  border-radius: 2px;
+  resize: none;
+  transition: border-color 0.2s;
+  line-height: 1.5;
+}
+
+.comment-textarea:focus {
+  border-color: var(--gold-dim);
+}
+
+.comment-textarea::placeholder {
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+.comment-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.35rem;
+}
+
+.comment-char {
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  margin-right: auto;
+  letter-spacing: 0.05em;
+}
+
+.comment-save-btn {
+  background: var(--gold-dim);
+  border: none;
+  color: var(--bg);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.75rem;
+  border-radius: 2px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+
+.comment-save-btn:hover:not(:disabled) {
+  background: var(--gold);
+}
+
+.comment-save-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.comment-add-btn {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 0.25rem 0;
+  font-family: inherit;
+  transition: color 0.15s;
+}
+
+.comment-add-btn:hover {
+  color: var(--gold-dim);
+}
+
+/* ─── Wishlist Button ───────────────────────────────────────────────────────── */
+.wishlist-btn {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0.1rem 0.2rem;
+  transition: color 0.15s;
+  line-height: 1;
+  font-family: inherit;
+}
+
+.wishlist-btn:hover {
+  color: var(--gold-dim);
+}
+
+.wishlist-btn.active {
+  color: var(--gold);
+}
+
+.wishlist-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ─── Wishlist Tab ──────────────────────────────────────────────────────────── */
+.wishlist-entry {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.wishlist-entry:last-child {
+  border-bottom: none;
+}
+
+.wishlist-entry.done {
+  opacity: 0.5;
+}
+
+.wishlist-entry.done .wishlist-label {
+  text-decoration: line-through;
+  color: #4a3e30;
+}
+
+.wishlist-done-btn {
+  background: none;
+  border: none;
+  color: var(--gold-dim);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  font-family: inherit;
+  transition: color 0.15s;
+  line-height: 1;
+}
+
+.wishlist-done-btn:hover {
+  color: var(--gold);
+}
+
+.wishlist-label {
+  flex: 1;
+  font-size: 1rem;
+  color: var(--text);
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.wishlist-remove-btn {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  cursor: pointer;
+  padding: 0.1rem 0.2rem;
+  font-family: inherit;
+  transition: color 0.15s;
+  opacity: 0;
+  flex-shrink: 0;
+}
+
+.wishlist-entry:hover .wishlist-remove-btn {
+  opacity: 1;
+}
+
+.wishlist-remove-btn:hover {
+  color: var(--no);
+}
+
+.wishlist-divider {
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 1rem 0 0.5rem;
+  border-top: 1px solid var(--border);
+  margin-top: 0.5rem;
+}
+
+/* ─── Conversation Starter ──────────────────────────────────────────────────── */
+.conv-starter {
+  padding: 1rem 1.25rem;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+}
+
+.conv-spinner {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.conv-card {
+  background: #16140f;
+  border: 1px solid #3a2e20;
+  border-radius: 3px;
+  padding: 1.5rem 1.75rem;
+  margin-top: 0.75rem;
+}
+
+.conv-card-item {
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #6b5c45;
+  margin-bottom: 0.75rem;
+}
+
+.conv-card-question {
+  font-size: 1.2rem;
+  font-style: italic;
+  font-weight: 300;
+  color: #e8d5bc;
+  line-height: 1.65;
+}
+
+/* ─── Responsive ────────────────────────────────────────────────────────────── */
 @media (max-width: 480px) {
   .answer-grid {
     grid-template-columns: repeat(2, 1fr);
