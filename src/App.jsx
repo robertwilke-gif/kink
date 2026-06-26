@@ -84,11 +84,19 @@ export default function App() {
     restore()
   }, [])
 
-  async function handleSessionReady(sessionData, slotNum, name) {
+  async function handleSessionReady(sessionData, slotNum, name, existingResponses) {
     setSession(sessionData)
     setSlot(slotNum)
     setMyName(name)
     saveSession({ code: sessionData.code, slot: slotNum, name })
+
+    // Returning to a completed session — go straight to results
+    if (existingResponses && existingResponses.length >= 2) {
+      setResponses(existingResponses)
+      setView('results')
+      return
+    }
+
     setView('form')
   }
 

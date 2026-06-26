@@ -14,21 +14,17 @@ export default function StartPage({ onReady }) {
   const [mode, setMode] = useState(null)
   const [name, setName] = useState('')
   const [code, setCode] = useState('')
-  const [generatedCode, setGeneratedCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [step, setStep] = useState('entry')
+  // when session is already complete: show name picker
+  const [completedSession, setCompletedSession] = useState(null)
 
   async function handleCreateSession() {
-    if (!name.trim()) {
-      setError('Bitte gib deinen Namen ein.')
-      return
-    }
+    if (!name.trim()) { setError('Bitte gib deinen Namen ein.'); return }
     setLoading(true)
     setError('')
 
     const newCode = generateCode()
-
     const { data: sessionData, error: err } = await supabase
       .from('sessions')
       .insert({ code: newCode })
@@ -41,23 +37,14 @@ export default function StartPage({ onReady }) {
       return
     }
 
-    setGeneratedCode(newCode)
-    setStep('created')
     setLoading(false)
-
     onReady(sessionData, 1, name.trim())
   }
 
   async function handleJoinSession() {
-    if (!name.trim()) {
-      setError('Bitte gib deinen Namen ein.')
-      return
-    }
+    if (!name.trim()) { setError('Bitte gib deinen Namen ein.'); return }
     const trimmedCode = code.trim().toUpperCase()
-    if (trimmedCode.length !== 6) {
-      setError('Der Code muss 6 Zeichen lang sein.')
-      return
-    }
+    if (trimmedCode.length !== 6) { setError('Der Code muss 6 Zeichen lang sein.'); return }
 
     setLoading(true)
     setError('')
@@ -80,25 +67,75 @@ export default function StartPage({ onReady }) {
       return
     }
 
-    const { data: existing } = await supabase
+    const { data: responses } = await supabase
       .from('responses')
-      .select('slot')
+      .select('*')
       .eq('session_id', sessionData.id)
 
-    const usedSlots = (existing || []).map(r => r.slot)
+    const usedSlots = (responses || []).map(r => r.slot)
 
+    // Session complete — show name picker to identify the returning user
     if (usedSlots.includes(1) && usedSlots.includes(2)) {
-      setError('Diese Session ist bereits vollständig ausgefüllt.')
+      setCompletedSession({ sessionData, responses })
       setLoading(false)
       return
     }
 
     const slot = usedSlots.includes(1) ? 2 : 1
-
     setLoading(false)
     onReady(sessionData, slot, name.trim())
   }
 
+  function handlePickName(sessionData, responses, slot, pickedName) {
+    onReady(sessionData, slot, pickedName, responses)
+  }
+
+  function reset() {
+    setMode(null)
+    setError('')
+    setName('')
+    setCode('')
+    setCompletedSession(null)
+  }
+
+  // ── Name picker for completed sessions ───────────────────────────────────────
+  if (completedSession) {
+    const { sessionData, responses } = completedSession
+    return (
+      <div className="page">
+        <div className="container">
+          <header className="app-header">
+            <div className="app-eyebrow">Kink List</div>
+            <h1 className="app-title">Sherin & Robert</h1>
+          </header>
+
+          <div className="panel">
+            <div className="panel-title">Ergebnisse aufrufen</div>
+            <p style={{ fontSize: '0.9rem', color: 'var(--text-dim)', marginBottom: '1.25rem', lineHeight: 1.6 }}>
+              Diese Session ist bereits vollständig ausgefüllt. Wer bist du?
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+              {responses.map(r => (
+                <button
+                  key={r.slot}
+                  className="btn btn-primary btn-full"
+                  onClick={() => handlePickName(sessionData, responses, r.slot, r.name)}
+                >
+                  {r.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
+            <button className="btn btn-ghost btn-sm" onClick={reset}>← Zurück</button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Normal start page ─────────────────────────────────────────────────────────
   return (
     <div className="page">
       <div className="container">
@@ -114,13 +151,12 @@ export default function StartPage({ onReady }) {
               Eine private Kompatibilitätsliste. Jede Person füllt sie unabhängig aus.
               Danach seht ihr gemeinsam, was übereinstimmt.
             </div>
-
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <button className="btn btn-primary btn-full" onClick={() => setMode('create')}>
                 Neue Session starten
               </button>
               <button className="btn btn-full" onClick={() => setMode('join')}>
-                Session beitreten
+                Session beitreten / Ergebnisse aufrufen
               </button>
             </div>
           </div>
@@ -128,17 +164,11 @@ export default function StartPage({ onReady }) {
 
         {mode === 'create' && (
           <div>
-            <button
-              className="btn btn-ghost btn-sm"
-              onClick={() => { setMode(null); setError(''); setName('') }}
-              style={{ marginBottom: '1.5rem' }}
-            >
+            <button className="btn btn-ghost btn-sm" onClick={reset} style={{ marginBottom: '1.5rem' }}>
               ← Zurück
             </button>
-
             <div className="panel">
               <div className="panel-title">Neue Session</div>
-
               <div className="input-group">
                 <label className="input-label">Dein Name</label>
                 <input
@@ -151,15 +181,8 @@ export default function StartPage({ onReady }) {
                   autoFocus
                 />
               </div>
-
               {error && <div className="error-text">{error}</div>}
-
-              <button
-                className="btn btn-primary btn-full"
-                onClick={handleCreateSession}
-                disabled={loading}
-                style={{ marginTop: '0.5rem' }}
-              >
+              <button className="btn btn-primary btn-full" onClick={handleCreateSession} disabled={loading} style={{ marginTop: '0.5rem' }}>
                 {loading ? 'Erstelle Session…' : 'Session erstellen & starten'}
               </button>
             </div>
@@ -168,17 +191,11 @@ export default function StartPage({ onReady }) {
 
         {mode === 'join' && (
           <div>
-            <button
-              className="btn btn-ghost btn-sm"
-              onClick={() => { setMode(null); setError(''); setName(''); setCode('') }}
-              style={{ marginBottom: '1.5rem' }}
-            >
+            <button className="btn btn-ghost btn-sm" onClick={reset} style={{ marginBottom: '1.5rem' }}>
               ← Zurück
             </button>
-
             <div className="panel">
-              <div className="panel-title">Session beitreten</div>
-
+              <div className="panel-title">Session beitreten / Ergebnisse aufrufen</div>
               <div className="input-group">
                 <label className="input-label">Dein Name</label>
                 <input
@@ -190,7 +207,6 @@ export default function StartPage({ onReady }) {
                   autoFocus
                 />
               </div>
-
               <div className="input-group">
                 <label className="input-label">Session-Code</label>
                 <input
@@ -203,16 +219,9 @@ export default function StartPage({ onReady }) {
                   maxLength={6}
                 />
               </div>
-
               {error && <div className="error-text">{error}</div>}
-
-              <button
-                className="btn btn-primary btn-full"
-                onClick={handleJoinSession}
-                disabled={loading}
-                style={{ marginTop: '0.5rem' }}
-              >
-                {loading ? 'Suche Session…' : 'Beitreten & ausfüllen'}
+              <button className="btn btn-primary btn-full" onClick={handleJoinSession} disabled={loading} style={{ marginTop: '0.5rem' }}>
+                {loading ? 'Suche Session…' : 'Weiter'}
               </button>
             </div>
           </div>
