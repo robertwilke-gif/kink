@@ -61,12 +61,6 @@ export default function StartPage({ onReady }) {
       return
     }
 
-    if (sessionData.expires_at && new Date(sessionData.expires_at) < new Date()) {
-      setError('Diese Session ist abgelaufen.')
-      setLoading(false)
-      return
-    }
-
     const { data: responses } = await supabase
       .from('responses')
       .select('*')
