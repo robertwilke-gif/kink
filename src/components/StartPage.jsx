@@ -61,7 +61,7 @@ export default function StartPage({ onReady }) {
       return
     }
 
-    if (new Date(sessionData.expires_at) < new Date()) {
+    if (sessionData.expires_at && new Date(sessionData.expires_at) < new Date()) {
       setError('Diese Session ist abgelaufen.')
       setLoading(false)
       return
